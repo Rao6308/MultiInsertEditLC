@@ -7,9 +7,6 @@
         <lightning:tab label="Required Integrations" id="two">
             <c:SECenterRequiredIntegration recordId="{!v.recordId}"></c:SECenterRequiredIntegration>
         </lightning:tab>
-        <lightning:tab label="PBO" id="three">
-        </lightning:tab>
-        <lightning:tab label="JCTF Object" id="four">
         </lightning:tab>
     </lightning:tabset>
 </aura:component>
