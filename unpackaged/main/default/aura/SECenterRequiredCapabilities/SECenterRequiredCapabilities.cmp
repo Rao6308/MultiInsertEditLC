@@ -1,0 +1,166 @@
+<aura:component controller="SECommandCentralController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction" access="global" >
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="RCRecord" type="Required_Capability__c[]" />
+    <aura:attribute name="UnfilteredData" type="Required_Capability__c[]" />
+    <aura:attribute name="RCInsertRecord" type="Required_Capability__c[]"/>
+    <aura:attribute name="PCMap" type="Map"/>
+    <aura:attribute name="selectedValue" type="String"/>
+    <aura:attribute name="filter" type="String"/>
+    <aura:attribute name="IsSpinner" type="Boolean" default="false"/>
+    <aura:attribute name="showInsertTable" type="Boolean" default="false"/>
+    
+    <aura:html tag="style">.toastMessage.forceActionsText{
+        white-space : pre-line !important;
+        }
+    </aura:html>
+    <aura:if isTrue="{!v.IsSpinner}">
+        <lightning:spinner variant="brand"  size="large" />
+    </aura:if>
+    
+    <div class="slds-box">
+        <div class="slds-box slds-theme_shade slds-theme_alert-texture">
+            <h1>Click '+' to  <strong>Insert</strong> new records.</h1>
+        </div>
+        <br/>
+        <!--Insert table-->
+        <lightning:buttonIcon iconName="utility:add"  size="large" variant="bare"  alternativeText="Add" onclick="{!c.addRow}"/>
+        <aura:if isTrue="{!not(empty(v.RCInsertRecord))}"> 
+        	<lightning:buttonIcon iconName="utility:close" size="large" variant="bare" alternativeText="remove" onclick="{!c.removeRow}"/>
+        </aura:if>
+        <br/>
+        <aura:if isTrue="{!v.showInsertTable}">
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered" >
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col">
+                            <div class="slds-truncate" title="Additional Context">Additional Context</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class="slds-truncate" title="Summary">Summary</div>
+                        </th>
+                        <th class="" scope="col">
+                            <div class="slds-truncate" title="Product Capability">Product Capability</div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <aura:iteration items="{!v.RCInsertRecord}" var="RCRecord" indexVar="index">                      
+                        <tr>
+                            <td data-label="{!RCRecord.Additional_Context__c}">
+                                <div class="slds-truncate" title="{!RCRecord.Additional_Context__c}">
+                                    <lightning:input value="{!RCRecord.Additional_Context__c}"/>
+                                </div>
+                            </td>
+                            <td data-label="{!RCRecord.Summary__c}">
+                                <div class="slds-truncate" title="{!RCRecord.Summary__c}">
+                                    <lightning:input value="{!RCRecord.Summary__c}" required="true"/>
+                                </div>
+                            </td>
+                            <td data-label="{!RCRecord.Product_Capability__c}">
+                                <div class="slds-truncate" title="{!RCRecord.Product_Capability__c}" >
+                                    <lightning:select aura:id="industryPicklist" value="{!RCRecord.Product_Capability__c}" required="true">
+                                        <option value="">--None--</option>
+                                        <aura:iteration items="{!v.PCMap}" var="ind" indexVar="key">
+                                            <option text="{!ind.value}" value="{!ind.key}" selected="{!ind.key== RCRecord.Product_Capability__c}" />
+                                        </aura:iteration>
+                                    </lightning:select>
+                                </div>
+                            </td>
+                        </tr>
+                    </aura:iteration>
+                </tbody>     
+            </table>
+            <br/>
+            <lightning:button variant="brand" label="Insert" title="Save action" onclick="{!c.handleInsert}" />
+        </aura:if>
+    </div>
+    <!--End of insert table -->
+    <br/>
+    <div class="slds-box">
+        <div class="slds-box slds-theme_shade slds-theme_alert-texture">
+            <h1>Use Search to  <strong>Update</strong> existing records.</h1>
+        </div>
+        <lightning:input type="text" onchange="{!c.filter}" value="{!v.filter}"  placeholder="Search RC name" />
+        <br/>
+        <table class="slds-table slds-table_cell-buffer slds-table_bordered" id="myTable">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="S.no">
+                            
+                        </div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Name">Name</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Additional Context">Additional Context</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Summary">Summary</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Product Capability">Product Capability</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="Created Date">CreatedDate</div>
+                    </th>
+                    <th class="" scope="col">
+                        <div class="slds-truncate" title="">
+                            
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.RCRecord}" var="RCRec" indexVar="index">
+                    <tr class="slds-hint-parent">
+                        <td scope="row">
+                            {!index+1}
+                        </td>
+                        <td data-label="{!RCRec.Name}" scope="row">
+                            <div class="slds-truncate" title="{!RCRec.Name}">
+                                <lightning:formattedUrl value="{!'/'+RCRec.Id}"  label="{!RCRec.Name}" target="_blank" />                                            
+                                
+                            </div>
+                        </td>
+                        <td data-label="{!RCRec.Additional_Context__c}">
+                            <div class="slds-truncate" title="{!RCRec.Additional_Context__c}">
+                                <lightning:input value="{!RCRec.Additional_Context__c}" />
+                            </div>
+                        </td>
+                        <td data-label="{!RCRec.Summary__c}">
+                            <div class="slds-truncate" title="{!RCRec.Summary__c}">
+                                <lightning:input value="{!RCRec.Summary__c}" required="true"/>
+                            </div>
+                        </td>
+                        <td data-label="{!RCRec.Product_Capability__c}">
+                            <div class="slds-truncate" title="{!RCRec.Product_Capability__c}">
+                                <lightning:select aura:id="industryPicklist" value="{!RCRec.Product_Capability__c}" required="true">
+                                    <option value="">--None--</option>
+                                    <aura:iteration items="{!v.PCMap}" var="ind" indexVar="key">
+                                        <option text="{!ind.value}" value="{!ind.key}" selected="{!ind.key==RCRec.Product_Capability__c}" />
+                                    </aura:iteration>
+                                </lightning:select>
+                            </div>
+                        </td>
+                        <td data-label="{!RCRec.CreatedDate}">
+                            <div class="slds-truncate" title="{!RCRec.CreatedDate}">
+                                {!RCRec.CreatedDate}
+                            </div>
+                        </td>  
+                        <td scope="row">
+                            <a name="{!index}" onclick="{!c.handleDelete}">
+                                <lightning:icon iconName="utility:delete" alternativeText="delete"/>
+                            </a>
+                        </td>
+                    </tr>
+                </aura:iteration>
+            </tbody>
+        </table>
+        <br/><br/>
+        <lightning:button variant="brand" label="Save" title="Save action" onclick="{!c.handleSave}" />
+        <lightning:button variant="brand" label="Cancel" title="Save action" onclick="{!c.handleCancel}" />      
+    </div>
+</aura:component>
